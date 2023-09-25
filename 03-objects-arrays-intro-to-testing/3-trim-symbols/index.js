@@ -17,7 +17,11 @@ export function trimSymbols(string, size) {
     if (prevChar === string[i]) {
       counter++;
     } else {
-      newStr += string.slice(i - counter, i - counter + size);
+      if (counter > size) {
+        newStr += string.slice(i - counter, i - counter + size);
+      } else {
+        newStr += string.slice(i - counter, i);
+      }
       counter = 1;
     }
 
