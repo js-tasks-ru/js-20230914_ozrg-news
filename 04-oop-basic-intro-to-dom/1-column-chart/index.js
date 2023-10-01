@@ -67,8 +67,8 @@ export default class ColumnChart {
 
   _initNotZeroData() {
     const chartBodyElement = this._createChartBodyElement();
-    const columnProps = this._getColumns(this._data);
-    const chartColumnsHTML = columnProps.reduce((prevHTML, column) => {
+    this.columnProps = this._getColumns(this._data);
+    const chartColumnsHTML = this.columnProps.reduce((prevHTML, column) => {
       return prevHTML +
         `<div style="--value: ${column.barHeight}" data-tooltip="${column.percent}"></div>`;
     }, "");
@@ -91,17 +91,9 @@ export default class ColumnChart {
   }
 
   _formatNum(num) {
-    const numStr = num.toString();
-    let newStr = "";
-
-    for (let i = 0; i < numStr.length; i++) {
-      if ((i % 3 === 0) && (i > 0)) {
-        newStr = "," + newStr;
-      }
-      newStr = numStr[numStr.length - 1 - i] + newStr;
-    }
-
-    return this.formatHeading(newStr);
+    return this.formatHeading(
+      new Intl.NumberFormat('en', { maximumFractionDigits: 0 }).format(num)
+    );
   }
 
   _createChartBodyElement() {
