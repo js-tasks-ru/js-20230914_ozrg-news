@@ -1,5 +1,5 @@
 export default class NotificationMessage {
-  static shown = false;
+  static element;
 
   constructor (message, {duration = 1000, type = "success"} = {}) {
     this.message = message;
@@ -11,7 +11,13 @@ export default class NotificationMessage {
 
   render() {
     this.element = document.createElement('div');
-    this.element.innerHTML = `
+    this.element.innerHTML = this.createTemplate();
+
+    this.element = this.element.firstElementChild;
+  }
+
+  createTemplate() {
+    return `
       <div class="notification ${this.type}" style="--value:${this.duration}ms">
         <div class="timer"></div>
         <div class="inner-wrapper">
@@ -21,22 +27,21 @@ export default class NotificationMessage {
           </div>
         </div>
       </div>
-    `;
-
-    this.element = this.element.firstElementChild;
+    `
   }
 
   show(appendingToElement = document.body) {
-    if (!NotificationMessage.shown) {
-      NotificationMessage.shown = true;
-      appendingToElement.append(this.element);
-
-      this.timeOut = setTimeout(() => this.remove(), this.duration);
+    if (NotificationMessage.element) {
+      NotificationMessage.element.destroy();
     }
+
+    NotificationMessage.element = this;
+    appendingToElement.append(this.element);
+
+    this.timeOut = setTimeout(() => this.remove(), this.duration);
   }
 
   remove() {
-    NotificationMessage.shown = false;
     this.element.remove();
   }
 
