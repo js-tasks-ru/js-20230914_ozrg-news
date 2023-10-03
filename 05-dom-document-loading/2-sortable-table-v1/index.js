@@ -1,15 +1,6 @@
 export default class SortableTable {
   constructor(headerConfig = [], data = []) {
-    this.headerConfig = new Map();
-    for (const headerColumn of headerConfig) {
-      this.headerConfig.set(headerColumn.id, {
-        title: headerColumn.title,
-        sortable: headerColumn.sortable,
-        template: headerColumn.template,
-        sortType: headerColumn.sortType,
-      });
-    }
-
+    this.headerConfig = this.prepareHeaderConfig(headerConfig);
     this.data = data;
     this.sortField = "";
     this.sortOrder = "";
@@ -18,8 +9,33 @@ export default class SortableTable {
     this.render();
   }
 
+  prepareHeaderConfig(headerConfig) {
+    let configeredHeader = new Map();
+    for (const headerColumn of headerConfig) {
+      configeredHeader.set(headerColumn.id, {
+        title: headerColumn.title,
+        sortable: headerColumn.sortable,
+        template: headerColumn.template,
+        sortType: headerColumn.sortType,
+      });
+    }
+
+    return configeredHeader;
+  }
+
   render() {
-    this.element.innerHTML = `
+    this.element.innerHTML = this.createTemplate();
+
+    this.element = this.element.firstElementChild;
+    this.subElements = this.element.querySelectorAll('div[data-element]');
+    this.subElements = {
+      header: this.subElements[0],
+      body: this.subElements[1],
+    };
+  }
+
+  createTemplate() {
+    return `
       <div data-element="productsContainer" class="products-list__container">
         <div class="sortable-table">
           <div data-element="header" class="sortable-table__header sortable-table__row">
@@ -31,12 +47,6 @@ export default class SortableTable {
         </div>
       </div>
     `;
-
-    this.element = this.element.firstElementChild;
-    this.subElements = {
-      header: this.element.querySelector('div[data-element="header"]'),
-      body: this.element.querySelector('div[data-element="body"]'),
-    };
   }
 
   sort(fieldValue, orderValue) {
@@ -44,23 +54,32 @@ export default class SortableTable {
     this.sortOrder = orderValue;
 
     let sortingFieldConfig = this.headerConfig.get(this.sortField);
+
     if (sortingFieldConfig.sortable) {
       let sortType = sortingFieldConfig.sortType;
-
-      if (this.sortOrder === 'asc') {
-        if (sortType === "string") {
-          this.data.sort((a, b) => this.compareStringsAsc(a[this.sortField], b[this.sortField]));
-        } else {
-          this.data.sort((a, b) => a[this.sortField] - b[this.sortField]);
-        }
-      } else if (this.sortOrder === 'desc') {
-        if (sortType === "string") {
-          this.data.sort((a, b) => this.compareStringsDesc(a[this.sortField], b[this.sortField]));
-        } else {
-          this.data.sort((a, b) => b[this.sortField] - a[this.sortField]);
-        }
-      }
+      let comparisonFunction = this.getComparisonFunction(
+        this.sortField,
+        sortType,
+        this.sortOrder
+      );
+      this.data.sort(comparisonFunction);
       this.render();
+    }
+  }
+
+  getComparisonFunction(sortField, sortType, sortOrder) {
+    if (sortOrder === 'asc') {
+      if (sortType === "string") {
+        return (a, b) => this.compareStringsAsc(a[sortField], b[sortField]);
+      } else {
+        return (a, b) => a[sortField] - b[sortField];
+      }
+    } else if (sortOrder === 'desc') {
+      if (sortType === "string") {
+        return (a, b) => this.compareStringsDesc(a[sortField], b[sortField]);
+      } else {
+        return (a, b) => b[sortField] - a[sortField];
+      }
     }
   }
 
