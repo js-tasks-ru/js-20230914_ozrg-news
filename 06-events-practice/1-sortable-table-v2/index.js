@@ -32,22 +32,20 @@ export default class SortableTable {
   _handleHeaderClick(e) {
     let headerCell = this.getHeaderCellOnClick(e.target);
 
+    let prevSortField = this.sortField;
     this.sortField = headerCell.getAttribute("data-id");
 
     let sortingFieldConfig = this.headersConfig.get(this.sortField);
     if (sortingFieldConfig.sortable) {
-      this.sortOrder = this.getNameOfReversedSortingOrder(this.sortOrder);
+      this.sortOrder = prevSortField === this.sortField
+        ? this.getNameOfReversedSortingOrder(this.sortOrder) : "desc";
     }
 
     this.sort(this.sortField, this.sortOrder);
   }
 
   getHeaderCellOnClick(eventTarget) {
-    if (eventTarget.hasAttribute("data-id")) {
-      return eventTarget;
-    } else if (eventTarget.tagName === "SPAN") {
-      return eventTarget.parentElement;
-    }
+    return eventTarget.closest("[data-id]");
   }
 
   getNameOfReversedSortingOrder(sortOrder) {
@@ -65,11 +63,9 @@ export default class SortableTable {
   render() {
     this.element.innerHTML = this.createTemplate();
 
-    this.element = this.element.firstElementChild;
-    this.subElements = this.element.querySelectorAll('div[data-element]');
     this.subElements = {
-      header: this.subElements[0],
-      body: this.subElements[1],
+      header: this.element.querySelector('div[data-element="header"]'),
+      body: this.element.querySelector('div[data-element="body"]'),
     };
 
     this.createListeners();
@@ -153,7 +149,7 @@ export default class SortableTable {
           class="sortable-table__cell"
           data-id="${id}"
           data-sortable="${properties.sortable}"
-          data-order=${this.sortOrder}
+          data-order=${this.sortField === id ? this.sortOrder : "desc"}
         >
           <span>${properties.title}</span>
           ${this.sortField === id ? this.createArrowHTML() : ""}
